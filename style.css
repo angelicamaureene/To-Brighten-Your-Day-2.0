@@ -1,4 +1,4 @@
-/* ---------- Global reset ---------- */
+/* -------- RESET -------- */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -13,68 +13,28 @@ html, body {
   font-family: system-ui, sans-serif;
 }
 
-/* ---------- Fireworks canvas ---------- */
+/* -------- CANVAS -------- */
 #fireCanvas {
   position: fixed;
   inset: 0;
   width: 100%;
   height: 100%;
+  display: block;
 }
 
-/* ---------- Timed burst‑images ---------- */
-#sky { position: fixed; inset: 0; pointer-events: none; }
-
-.burst {
-  position: absolute;
-  top: 50%; left: 50%;
-  width: 42vmin; max-width: 320px;
-  transform: translate(-50%, -50%) scale(0.4);
-  opacity: 0;
-  transition: opacity .8s ease, transform .8s ease;
-}
-
-.burst.show {
-  opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
-}
-
-/* ---------- Bubble‑letter message ---------- */
-#message {
-  position: fixed;
-  inset: 0;
-  display: grid;
-  place-content: center;
-  text-align: center;
-  font-weight: 900;
-  font-size: clamp(2.2rem, 5vw, 3.6rem);
-  letter-spacing: .05em;
-  color: #fff;
-  -webkit-text-stroke: 3px #ff6;
-  filter: drop-shadow(0 0 8px #fb3);
-  opacity: 0;
-  transform: scale(.7);
-  pointer-events: none;
-  transition: opacity .8s ease, transform .8s ease;
-}
-
-#message.show {
-  opacity: 1;
-  transform: scale(1);
-}
-
-/* ---------- Finale overlay ---------- */
+/* -------- OVERLAY -------- */
 #overlay {
   position: fixed;
   inset: 0;
   display: grid;
   place-content: center;
   gap: 1rem;
-  background: rgba(0,0,0,.85);
+  background: rgba(0, 0, 0, 0.85);
   color: #fff;
   text-align: center;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 1s ease;
+  transition: opacity 1s;
 }
 
 #overlay.show {
@@ -83,15 +43,18 @@ html, body {
 }
 
 #overlay button {
-  padding: .8rem 1.8rem;
+  padding: 0.8rem 1.8rem;
   font-size: 1rem;
   border: none;
-  border-radius: .6rem;
-  background: linear-gradient(135deg,#ff7d7d,#ffe57f);
+  border-radius: 0.6rem;
+  background: linear-gradient(135deg, #ff7d7d, #ffe57f);
   color: #000;
   cursor: pointer;
-  transition: transform .2s ease;
+  transition: transform 0.2s;
 }
 
-#overlay button:hover { transform: scale(1.06); }
+#overlay button:hover {
+  transform: scale(1.06);
+}
+
 
