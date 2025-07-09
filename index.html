@@ -3,33 +3,40 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>3‑Minute Image Fireworks</title>
+  <title>Firework Love Show 💖</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
-  <!-- “Night sky” -->
+  <!-- Canvas for constant random fireworks -->
+  <canvas id="fireCanvas"></canvas>
+
+  <!-- 9 burst‑images (appearing every 20 s) -->
   <div id="sky">
-    <!-- Nine hidden bursts (replace src with your own files/links) -->
-    <img class="burst" src="images/cherry‑blossom.png"  alt="Cherry‑blossom firework">
+    <img class="burst" src="images/cherry‑blossom.png"  alt="Cherry blossom">
     <img class="burst" src="images/rainbow.png"          alt="Rainbow burst">
     <img class="burst" src="images/flower‑bouquet‑1.png" alt="Flower bouquet">
     <img class="burst" src="images/moomin.png"           alt="Moomin">
-    <img class="burst" src="images/watermelon.png"       alt="Cute watermelon">
+    <img class="burst" src="images/strawberry.png"       alt="Cute strawberry">
     <img class="burst" src="images/flower‑bouquet‑2.png" alt="Second bouquet">
-    <!-- Personal placeholders -->
     <img class="burst" src="images/personal‑1.jpg"       alt="Personal 1">
     <img class="burst" src="images/personal‑2.jpg"       alt="Personal 2">
     <img class="burst" src="images/personal‑3.jpg"       alt="Personal 3">
   </div>
 
-  <!-- Overlay shown after the 3‑minute finale -->
+  <!-- Bubble‑letter message area -->
+  <div id="message"></div>
+
+  <!-- End‑of‑show overlay -->
   <div id="overlay">
-    <h1>🎇 Show Over 🎇</h1>
-    <button id="replay">Replay</button>
+    <h1>🎆 The End 🎆</h1>
+    <button id="replay">Replay show</button>
   </div>
 
   <script src="script.js"></script>
+</body>
+</html>
+
 </body>
 </html>
 
