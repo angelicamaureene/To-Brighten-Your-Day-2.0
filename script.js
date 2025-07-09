@@ -1,12 +1,14 @@
 /***********************************************************************
- * Firework‑Shape Image Show  (script.js)
- * – Every 20 s a new picture is drawn as thousands of spark particles.
- * – Background fireworks pop continuously.
+ * Firework‑Shape Image Show  (script.js) – v2 (2025‑07‑09)
+ * Changes:
+ *   • Image‑shape particles last ~10 s (600 frames) before fading.
+ *   • Slower drift → images stay crisper.
+ *   • Background fireworks toned down:
+ *       – Spawn every 400 ms instead of 200 ms.
+ *       – Explosion particle count reduced from 60 → 45.
  ***********************************************************************/
 
-/* ----------------------------------------------------------- */
-/* 1. Canvas setup                                             */
-/* ----------------------------------------------------------- */
+/* 1. Canvas setup */
 const canvas = document.getElementById("fireCanvas");
 const ctx    = canvas.getContext("2d");
 
@@ -19,16 +21,16 @@ window.addEventListener("resize", resizeCanvas);
 
 console.log("🔧 script.js loaded");
 
-/* ----------------------------------------------------------- */
-/* 2. Helper functions                                         */
-/* ----------------------------------------------------------- */
+/* 2. Helper functions */
 const TWO_PI = Math.PI * 2;
 const rand   = (a, b) => Math.random() * (b - a) + a;
 const rgbStr = (r, g, b) => `rgb(${r},${g},${b})`;
 
-/* ----------------------------------------------------------- */
-/* 3. Particle & background firework classes                   */
-/* ----------------------------------------------------------- */
+/* --- new tuning constants --- */
+const IMAGE_PARTICLE_LIFESPAN = 600;   // ≈10 s @60 fps
+const BG_FIREWORK_INTERVAL    = 400;   // ms between background pops
+
+/* 3. Particle & background firework classes */
 class Particle {
   constructor(x, y, angle, speed, color, life = 80, gravity = true) {
     this.x = x;
@@ -42,8 +44,8 @@ class Particle {
   }
   update() {
     this.life++;
-    if (this.gravity) this.vy += 0.02;  // simple gravity pull
-    this.vx *= 0.98;                    // air drag
+    if (this.gravity) this.vy += 0.02;
+    this.vx *= 0.98;
     this.vy *= 0.98;
     this.x += this.vx;
     this.y += this.vy;
@@ -60,12 +62,12 @@ class Particle {
   }
 }
 
-class Firework {                       // background random pops
+class Firework {
   constructor() {
     this.x = rand(canvas.width * 0.2, canvas.width * 0.8);
     this.y = canvas.height;
     this.targetY = rand(canvas.height * 0.2, canvas.height * 0.45);
-    this.color = `hsl(${rand(0, 360)}deg,100%,60%)`;
+    this.color = `hsl(${rand(0, 360)}deg 100% 60%)`;
     this.spark = true;
     this.parts = [];
   }
@@ -74,7 +76,7 @@ class Firework {                       // background random pops
       this.y -= 4;
       if (this.y <= this.targetY) {
         // explode
-        for (let i = 0; i < 60; i++) {
+        for (let i = 0; i < 45; i++) {
           this.parts.push(
             new Particle(
               this.x,
@@ -87,13 +89,13 @@ class Firework {                       // background random pops
         }
         this.spark = false;
       } else {
-        // draw rising spark
+        // rising trail
         ctx.globalAlpha = 1;
         ctx.fillStyle   = "#fff";
         ctx.fillRect(this.x, this.y, 2, 2);
       }
     }
-    // update exploded particles
+    // exploded particles
     this.parts = this.parts.filter((p) => {
       p.update();
       return p.draw();
@@ -104,15 +106,13 @@ class Firework {                       // background random pops
   }
 }
 
-/* ----------------------------------------------------------- */
-/* 4. Image‑to‑firework helper                                 */
-/* ----------------------------------------------------------- */
-let imageParticles = [];   // particles that form the current image
+/* 4. Image‑to‑firework helper */
+let imageParticles = [];
 
 function imageFireworks(imgPath, scale = 0.6) {
   const img = new Image();
   img.src = imgPath;
-  img.crossOrigin = "anonymous";   // avoids CORS taint if hosted elsewhere
+  img.crossOrigin = "anonymous";
   img.onload = () => {
     const off = document.createElement("canvas");
     off.width  = img.width;
@@ -121,7 +121,7 @@ function imageFireworks(imgPath, scale = 0.6) {
     oCtx.drawImage(img, 0, 0);
 
     const { data, width, height } = oCtx.getImageData(0, 0, off.width, off.height);
-    const gap   = 7;                            // sampling step (smaller = denser)
+    const gap   = 7;
     const baseX = canvas.width  / 2 - (width  * scale) / 2;
     const baseY = canvas.height / 2 - (height * scale) / 2;
 
@@ -138,10 +138,10 @@ function imageFireworks(imgPath, scale = 0.6) {
               px,
               py,
               rand(0, TWO_PI),
-              rand(0.5, 2),
+              rand(0.1, 0.6),            // slower drift keeps shape crisp
               rgbStr(r, g, b),
-              120,
-              false    // no gravity → shape stays in place
+              IMAGE_PARTICLE_LIFESPAN,
+              false                       // no gravity → stays in place
             )
           );
         }
@@ -152,22 +152,20 @@ function imageFireworks(imgPath, scale = 0.6) {
   img.onerror = () => console.error("❌ Failed to load image:", imgPath);
 }
 
-/* ----------------------------------------------------------- */
-/* 5. Animation loop                                           */
-/* ----------------------------------------------------------- */
-let bgFireworks = [];  // array of background Firework objects
-let lastPop     = 0;   // ms since last random firework
+/* 5. Animation loop */
+let bgFireworks = [];
+let lastPop     = 0;
 let showOver    = false;
 
 function animate(timestamp) {
-  // fade previous frame (trail effect)
+  // fade trails
   ctx.globalCompositeOperation = "destination-out";
   ctx.fillStyle = "rgba(0,0,0,0.25)";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.globalCompositeOperation = "lighter";
 
-  // background pops every 200 ms
-  if (timestamp - lastPop > 200) {
+  // background pops
+  if (timestamp - lastPop > BG_FIREWORK_INTERVAL) {
     bgFireworks.push(new Firework());
     lastPop = timestamp;
   }
@@ -176,7 +174,7 @@ function animate(timestamp) {
     return !fw.dead();
   });
 
-  // draw image-shape particles
+  // image-shape particles
   imageParticles = imageParticles.filter((p) => {
     p.update();
     return p.draw();
@@ -185,9 +183,7 @@ function animate(timestamp) {
   if (!showOver) requestAnimationFrame(animate);
 }
 
-/* ----------------------------------------------------------- */
-/* 6. Sequence control (9 pictures × 20 s)                     */
-/* ----------------------------------------------------------- */
+/* 6. Sequence control */
 const imageSequence = [
   "images/cherry-blossom.png",
   "images/rainbow.png",
@@ -200,7 +196,7 @@ const imageSequence = [
   "images/personal-3.jpg",
 ];
 
-const IMG_INTERVAL = 20_000;   // 20 seconds
+const IMG_INTERVAL = 20_000;  // 20 s
 let imgIndex = -1;
 let intervalId;
 
@@ -213,9 +209,7 @@ function nextImage() {
   }
 }
 
-/* ----------------------------------------------------------- */
-/* 7. Overlay / replay                                         */
-/* ----------------------------------------------------------- */
+/* 7. Overlay / replay */
 const overlay   = document.getElementById("overlay");
 const replayBtn = document.getElementById("replay");
 replayBtn.addEventListener("click", startShow);
@@ -229,7 +223,6 @@ function endShow() {
 
 function startShow() {
   console.log("▶️ start() triggered, beginning show");
-
   overlay.classList.remove("show");
   showOver       = false;
   imgIndex       = -1;
@@ -238,12 +231,10 @@ function startShow() {
   lastPop        = 0;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  requestAnimationFrame(animate);  // kick off animation loop
-  nextImage();                     // show first image immediately
+  requestAnimationFrame(animate);
+  nextImage();
   intervalId = setInterval(nextImage, IMG_INTERVAL);
 }
 
-/* ----------------------------------------------------------- */
-/* 8. Kick everything off                                      */
-/* ----------------------------------------------------------- */
+/* 8. Kick off */
 startShow();
