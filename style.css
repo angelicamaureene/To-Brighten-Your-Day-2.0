@@ -1,0 +1,75 @@
+/* --------- Global reset --------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* --------- Night sky backdrop --------- */
+html, body {
+  width: 100%;
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+}
+
+#sky {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* --------- Burst images --------- */
+.burst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40vmin;          /* adaptively sized */
+  max-width: 300px;
+  transform: translate(-50%, -50%) scale(0.4);
+  opacity: 0;
+  transition: opacity 0.8s ease, transform 0.8s ease;
+  pointer-events: none;
+}
+
+/* When active… */
+.burst.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* --------- Finale overlay --------- */
+#overlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 1.25rem;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  text-align: center;
+  font-family: system-ui, sans-serif;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1s ease;
+}
+
+#overlay.show {
+  opacity: 1;
+  pointer-events: all;
+}
+
+#overlay button {
+  padding: 0.75rem 1.75rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 0.6rem;
+  background: linear-gradient(135deg, #ff7d7d, #ffe57f);
+  color: #000;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+#overlay button:hover {
+  transform: scale(1.06);
+}
