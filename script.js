@@ -1,27 +1,24 @@
 /********************************************************************
  * 3‑Minute Firework‑SHAPE Image Show
- * – every 20 s one picture is “painted” with thousands of spark
- *   particles instead of showing as a flat image.
+ * – every 20 s one picture is “painted” with spark particles.
  ********************************************************************/
 
-/* ----------  Canvas & resize ---------- */
+/* -------- CANVAS SETUP -------- */
 const canvas = document.getElementById("fireCanvas");
-const ctx    = canvas.getContext("2d");
+const ctx = canvas.getContext("2d");
 function resize() {
-  canvas.width  = innerWidth;
+  canvas.width = innerWidth;
   canvas.height = innerHeight;
 }
 addEventListener("resize", resize);
 resize();
 
-/* ----------  Helpers ---------- */
+/* -------- UTILITIES -------- */
 const TWO_PI = Math.PI * 2;
 const rand   = (a, b) => Math.random() * (b - a) + a;
-
-/* RGB string helper (for off‑screen pixel sampling) */
 const rgbStr = (r, g, b) => `rgb(${r},${g},${b})`;
 
-/* ----------  Particle classes ---------- */
+/* -------- PARTICLE CLASS -------- */
 class Particle {
   constructor(x, y, angle, speed, color, life = 80, gravity = true) {
     this.x = x;
@@ -33,21 +30,19 @@ class Particle {
     this.lifeSpan = life;
     this.gravity = gravity;
   }
-
   update() {
     this.life++;
-    if (this.gravity) this.vy += 0.02;        // gravity
-    this.vx *= 0.98;                          // air‑drag
+    if (this.gravity) this.vy += 0.02; // gravity
+    this.vx *= 0.98;
     this.vy *= 0.98;
     this.x += this.vx;
     this.y += this.vy;
   }
-
   draw() {
     const alpha = Math.max(0, 1 - this.life / this.lifeSpan);
     if (alpha <= 0) return false;
     ctx.globalAlpha = alpha;
-    ctx.fillStyle   = this.color;
+    ctx.fillStyle = this.color;
     ctx.beginPath();
     ctx.arc(this.x, this.y, 2, 0, TWO_PI);
     ctx.fill();
@@ -55,7 +50,7 @@ class Particle {
   }
 }
 
-/* Background random pops */
+/* -------- RANDOM BACKGROUND FIREWORK -------- */
 class Firework {
   constructor() {
     this.x = rand(canvas.width * 0.2, canvas.width * 0.8);
@@ -83,7 +78,7 @@ class Firework {
         this.spark = false;
       } else {
         ctx.globalAlpha = 1;
-        ctx.fillStyle   = "#fff";
+        ctx.fillStyle = "#fff";
         ctx.fillRect(this.x, this.y, 2, 2);
       }
     }
@@ -97,11 +92,11 @@ class Firework {
   }
 }
 
-/* ----------  GLOBAL ARRAYS ---------- */
-let bgFireworks   = [];      // background random pops
-let imageParticles = [];     // particles that form the pictures
+/* -------- ARRAYS -------- */
+let bgFireworks   = [];  // background pops
+let imageParticles = []; // particles forming each picture
 
-/* ----------  Image‑to‑Fireworks helper ---------- */
+/* -------- IMAGE → PARTICLES -------- */
 function imageFireworks(imgPath, scale = 0.6) {
   const img = new Image();
   img.src = imgPath;
@@ -113,8 +108,7 @@ function imageFireworks(imgPath, scale = 0.6) {
     oCtx.drawImage(img, 0, 0);
 
     const { data, width, height } = oCtx.getImageData(0, 0, off.width, off.height);
-
-    const gap = 7;                               // pixel step: smaller → denser sparks
+    const gap = 7;                             // pixel sampling step
     const baseX = canvas.width  / 2 - (width  * scale) / 2;
     const baseY = canvas.height / 2 - (height * scale) / 2;
 
@@ -133,8 +127,8 @@ function imageFireworks(imgPath, scale = 0.6) {
               rand(0, TWO_PI),
               rand(0.5, 2),
               rgbStr(r, g, b),
-              120,            // lifeSpan
-              false           // no gravity → shape lingers
+              120,      // life span
+              false     // no gravity → the shape lingers
             )
           );
         }
@@ -143,18 +137,18 @@ function imageFireworks(imgPath, scale = 0.6) {
   };
 }
 
-/* ----------  Animation loop ---------- */
+/* -------- ANIMATION LOOP -------- */
 let lastPop = 0;
 let showOver = false;
 function animate(t) {
-  // Fade previous frame (creates trails)
+  // Fade previous frame for trails
   ctx.globalCompositeOperation = "destination-out";
   ctx.fillStyle = "rgba(0,0,0,0.25)";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.globalCompositeOperation = "lighter";
 
   /* background pops */
-  if (t - lastPop > 200) {            // pop every 200 ms
+  if (t - lastPop > 200) {               // pop every 200 ms
     bgFireworks.push(new Firework());
     lastPop = t;
   }
@@ -163,7 +157,7 @@ function animate(t) {
     return !fw.dead();
   });
 
-  /* image‑shape particles */
+  /* picture particles */
   imageParticles = imageParticles.filter((p) => {
     p.update();
     return p.draw();
@@ -172,7 +166,7 @@ function animate(t) {
   if (!showOver) requestAnimationFrame(animate);
 }
 
-/* ----------  20‑second sequence ---------- */
+/* -------- IMAGE SEQUENCE (9 × 20 s) -------- */
 const imageSequence = [
   "images/cherry-blossom.png",
   "images/rainbow.png",
@@ -182,9 +176,9 @@ const imageSequence = [
   "images/flower-bouquet-2.png",
   "images/personal-1.jpg",
   "images/personal-2.jpg",
-  "images/personal-3.jpg"
+  "images/personal-3.jpg",
 ];
-const IMG_INTERVAL = 20_000;          // 20 s
+const IMG_INTERVAL = 20_000;  // 20 seconds
 let imgIndex = -1;
 let timerId;
 
@@ -197,7 +191,7 @@ function nextImage() {
   }
 }
 
-/* ----------  Overlay / Replay ---------- */
+/* -------- OVERLAY / REPLAY -------- */
 const overlay   = document.getElementById("overlay");
 const replayBtn = document.getElementById("replay");
 replayBtn.addEventListener("click", startShow);
@@ -218,11 +212,12 @@ function startShow() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   requestAnimationFrame(animate);
-  nextImage();                                      // first immediately
-  timerId = setInterval(nextImage, IMG_INTERVAL);   // others every 20 s
+  nextImage();                          // first immediately
+  timerId = setInterval(nextImage, IMG_INTERVAL);
 }
 
-/* ----------  Kickoff ---------- */
+/* -------- GO! -------- */
 startShow();
+
 
 
